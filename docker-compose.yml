@@ -1,0 +1,346 @@
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                    IPBRICK-DEVOPS                                                   ##
+##                                                                                                                     ##
+##                                                                                                                     ##
+##                                                                                    IPBRICK by EXPANDINDUSTRIA 2025  ##
+#########################################################################################################################
+
+services:
+
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                       PORTAINER                                                     ##
+##                                                                                                                     ##
+#########################################################################################################################
+  # PORTAINER
+  portainer:
+    image: portainer/portainer-ce:2.20.3
+    container_name: portainer_server
+    ports:
+      - 15200:9000                                          # PORTAINER_PORTS
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    restart: always
+
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                         GITLAB                                                      ##
+##                                                                                                                     ##
+#########################################################################################################################
+  gitlab:
+    image: gitlab/gitlab-ce:17.3.1-ce.0
+    container_name: gitlab
+    hostname: 'domain.com'                                  # GITLAB_HOSTNAME
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://domain.com'                   # URL_GITLAB
+        nginx['listen_https'] = false
+        nginx['redirect_http_to_https'] = false
+        nginx['listen_port'] = 8181                         # GITLAB_LISTEN_PORT
+        gitlab_rails['initial_root_password']=''            # GITLAB_PASS
+        # LDAP configuration
+        gitlab_rails['ldap_enabled'] = true
+        gitlab_rails['ldap_label'] = 'LDAP'
+        gitlab_rails['ldap_host'] = ''                      # GITLAB_LDAP_HOST
+        gitlab_rails['ldap_port'] =  9999                   # GITLAB_PORT 
+        gitlab_rails['ldap_uid'] = ''                       # GITLAB_UID
+        gitlab_rails['ldap_method'] = ''                    # GITLAB_METHOD
+        gitlab_rails['ldap_bind_dn'] = ''                   # GITLAB_BIND
+        gitlab_rails['ldap_password'] = ''                  # GITLAB_LDAP_PASS
+        gitlab_rails['ldap_allow_username_or_email_login'] = true
+        gitlab_rails['ldap_base'] = ''                      # GITLAB_LDAP_BASE
+    ports:
+      - '15220:8181'                                        # GITLAB_PORT_80
+      - '15221:443'                                         # GITLAB_PORT_443
+      - '15222:22'                                          # GITLAB_PORT_22
+    volumes:
+      - gitlab-install:/etc/gitlab
+      - gitlab-logs:/var/log/gitlab
+      - gitlab-data:/var/opt/gitlab
+    shm_size: '256m'
+    restart: always
+    networks:
+      - ipbrick-v8
+
+  dind:
+    image: docker:27.3.1-dind
+    restart: always
+    privileged: true
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    command:
+      - --storage-driver=overlay2
+    volumes:
+      - ./data/dind/docker:/home1/_dockersRoot/
+
+  gitlab-runner:
+    restart: always
+    image: gitlab/gitlab-runner:v17.5.3
+    volumes:
+      - ./config:/etc/gitlab-runner:z
+      - ./data/runner/cache:/cache
+        ###- /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DOCKER_HOST=tcp://dind:2375
+
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                        GRAFANA                                                      ##
+##                                                                                                                     ##
+#########################################################################################################################
+  # GRAFANA
+  grafana:
+    image: grafana/grafana:11.1.4
+    container_name: grafana_server
+    networks:
+      - ipbrick-v8
+    hostname: 'grafana.domain.com'                          # GRAFANA_HOSTNAME
+    ports:
+      - 15210:3000                                          # GRAFANA_PORTS
+    environment:
+      - GF_DATABASE_TYPE=postgres
+      - GF_DATABASE_HOST=postgres:5432
+      - GF_DATABASE_NAME=grafana_db                         # GRAFANA_DB_NAME
+      - GF_DATABASE_USER=admin                              # GRAFANA_DB_USERNAME
+      - GF_DATABASE_PASSWORD=wkhuneTBF3F5gMUrtDaKs9Xe       # GRAFANA_DB_PASSWORD
+      - GF_SECURITY_ADMIN_USER=admin                        # GRAFANA_ADMIN_USERNAME
+      - GF_SECURITY_ADMIN_PASSWORD=admin                    # GRAFANA_ADMIN_PASSWORD
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    depends_on:
+      - postgres
+    volumes:
+      - grafana_storage:/var/lib/grafana
+    restart: always
+
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                       KEYCLOAK                                                      ##
+##                                                                                                                     ##
+#########################################################################################################################
+  # KEYCLOAK
+  keycloak:
+    image: keycloak/keycloak:26.0
+    networks:
+      - ipbrick-v8
+    container_name: keycloak_server
+    environment:
+      PROXY_ADDRESS_FORWARDING: true
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
+      KC_DB_USERNAME: admin
+      KC_DB_PASSWORD: wkhuneTBF3F5gMUrtDaKs9Xe
+      KC_TRANSACTION_XA_ENABLED: false                                            # Melhor desempenho no PostgreSQL
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin                                          # KEYCLOAK_USERADMIN
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin                                          # KEYCLOAK_PASSADMIN
+      KC_LOG_LEVEL: DEBUG
+      # --------------- IMPORT ---------------
+      IMPORT_SECRET_KEY: "PkIjqEKDZIJNtBFfln21SH9cHKyTYl80"                       # KEYCLOAK_IMPORT_SECRET
+      IMPORT_BIND_CREDENTIAL: "15ac98720befec1d3f635426ccf15868"                  # KEYCLOAK_BIND_CREDENTIAL
+      IMPORT_LDAP_IP: "ldap://62.28.182.152"                                      # KEYCLOAK_IMPORT_LDAP
+      IMPORT_BIND_DN: "cn=Reader,dc=moreit,dc=ucoip,dc=pt"                        # KEYCLOAK_BIND_DN
+      IMPORT_USERS_DN: "ou=users,dc=moreit,dc=ucoip,dc=pt"                        # KEYCLOAK_IMPORT_USERS_DN
+    command: >
+      start --import-realm
+      --proxy=edge
+      --hostname="https://keycloak.moreit.ucoip.pt"
+      --http-enabled=true
+      --spi-cookie-same-site=None
+    ports:
+    - "15380:8080"                                                                # KEYCLOAK_PORT_80
+    - "15343:8443"                                                                # KEYCLOAK_PORT_443
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./keycloak/imports:/opt/keycloak/data/import
+    depends_on:
+      - postgres
+    restart: always
+
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                        OUTLINE                                                      ##
+##                                                                                                                     ##
+#########################################################################################################################
+  # OUTLINE
+  outline:
+    image: docker.getoutline.com/outlinewiki/outline:latest
+    networks:
+      - ipbrick-v8
+    container_name: outline_server
+    environment:
+      NODE_ENV: production                                                        # OUTLINE_MODE
+      UTILS_SECRET: bba0b0f57a3e8c26d95b4a897905b5f6e5cb7f9299f6f3f6c0214e9fa8b957a6             # OUTLINE_UTILS_SECRET
+      SECRET_KEY: 32233a2ec875682c31ec1dd7a3fd875c6c403a6f03f670af1a99ee84800f416b               # OUTLINE_SECRECT_KEY
+      DATABASE_URL: postgres://admin:wkhuneTBF3F5gMUrtDaKs9Xe@postgres:5432/outline_db      # OUTLINE_POSTGRES_CONECTION
+      DATABASE_CONNECTION_POOL_MIN:
+      DATABASE_CONNECTION_POOL_MAX:
+      PGSSLMODE: disable
+      REDIS_URL: redis://redis:6379                                               # OUTLINE_REDIS
+      URL: "https://outline.moreit.ucoip.pt"                                      # OUTLINE_URL
+      PORT: 3000                                                                  # OUTLINE_PORT
+      # Keycloak OAuth
+      OIDC_CLIENT_ID: outline                                                     # OUTLINE_CLIENT_ID
+      OIDC_CLIENT_SECRET: "PkIjqEKDZIJNtBFfln21SH9cHKyTYl80"                      # OUTLINE_CLIENT_SECRET
+      OIDC_AUTH_URI: http://keycloak.moreit.ucoip.pt:15380/realms/moreit_realm/protocol/openid-connect/auth
+      OIDC_TOKEN_URI: http://keycloak.moreit.ucoip.pt:15380/realms/moreit_realm/protocol/openid-connect/token
+      OIDC_USERINFO_URI: http://keycloak.moreit.ucoip.pt:15380/realms/moreit_realm/protocol/openid-connect/userinfo
+      OIDC_LOGOUT_URL: http://keycloak.moreit.ucoip.pt:15380/realms/moreit_realm/protocol/openid-connect/logout
+      OIDC_REDIRECT_URI: https://outline.moreit.ucoip.ptallback
+      FORCE_HTTPS: true
+      TRUST_PROXY: true
+      WEB_CONCURRENCY: 1
+      DEBUG: http
+      LOG_LEVEL: info
+      DEFAULT_LANGUAGE: en_US
+      RATE_LIMITER_ENABLED: true
+      RATE_LIMITER_REQUESTS: 1000
+      RATE_LIMITER_DURATION_WINDOW: 60
+      DEVELOPMENT_UNSAFE_INLINE_CSP: false
+      # Local File Storage
+      FILE_STORAGE: local
+      FILE_STORAGE_UPLOAD_MAX_SIZE: 52428800 #50MB
+      FILE_STORAGE_IMPORT_MAX_SIZE: 5120000
+    ports:
+      - "15430:3000"
+    depends_on:
+      - postgres
+      - redis
+      - keycloak
+    restart: always
+
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                         WEKAN                                                       ##
+##                                                                                                                     ##
+#########################################################################################################################
+  # WEKAN
+  wekan:
+    image: wekanteam/wekan:v7.59
+    container_name: wekan_server
+    restart: always
+    networks:
+      - wekan-tier
+    ports:
+      - 15230:8080
+    environment:
+      - WRITABLE_PATH=/data
+      - MONGO_URL=mongodb://wekandb:27017/wekan
+      #- ROOT_URL=http://localhost
+      - ROOT_URL=https://domain.com                                   # WEKAN_HOST
+      - MAIL_URL=smtp://192.168.152.1:25/?ignoreTLS=true&tls={rejectUnauthorized:false} # WEKAN_MAIL
+      - MAIL_FROM=Wekan Notifications <noreply.wekan@moreit.ucoip.pt> # WEKAN_EMAIL_NOTIFY
+      - WITH_API=true
+      - RICHER_CARD_COMMENT_EDITOR=false
+      - CARD_OPENED_WEBHOOK_ENABLED=false
+      - BIGEVENTS_PATTERN=NONE
+      - BROWSER_POLICY_ENABLED=true
+      - DEFAULT_AUTHENTICATION_METHOD=ldap                            
+      - LDAP_ENABLE=true
+      - LDAP_PORT=389
+      - LDAP_HOST=192.168.152.1
+      - LDAP_USER_AUTHENTICATION=true
+      - LDAP_USER_AUTHENTICATION_FIELD=uid
+      - LDAP_BASEDN=ou=Users,dc=moreit,dc=ucoip,dc=pt
+      - LDAP_RECONNECT=true
+      - LDAP_AUTHENTIFICATION=true
+      - LDAP_AUTHENTIFICATION_USERDN=cn=reader,dc=moreit,dc=ucoip,dc=pt
+      - LDAP_AUTHENTIFICATION_PASSWORD=15ac98720befec1d3f635426ccf15868
+      - LDAP_LOG_ENABLED=true
+      - LDAP_ENCRYPTION=false
+      - LDAP_USER_SEARCH_FILTER=(&(objectClass=inetOrgPerson))
+      - LDAP_USER_SEARCH_SCOPE=one
+      - LDAP_USER_SEARCH_FIELD=uid
+      - LDAP_USERNAME_FIELD=uid
+      - LDAP_FULLNAME_FIELD=cn
+      - LDAP_EMAIL_FIELD=mail
+    depends_on:
+      - wekandb
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - wekan-files:/data:rw
+
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                       DATABASES                                                     ##
+##                                                                                                                     ##
+#########################################################################################################################
+  # POSTGRES
+  postgres:
+    image: postgres:12.22
+    container_name: postgres_server
+    ports:
+      - "5432:5432"
+    networks:
+      - ipbrick-v8
+    volumes:
+      - database-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: wkhuneTBF3F5gMUrtDaKs9Xe
+      POSTGRES_DB: postgres
+    restart: always
+
+  # WEKAN_DB
+  wekandb:
+    image: mongo:6
+    container_name: wekan_server
+    restart: always
+    command: mongod --logpath /dev/null --oplogSize 128 --quiet
+    networks:
+      - wekan-tier
+    expose:
+      - 27017
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - wekan-db:/data/db
+      - wekan-db-dump:/dump
+
+  # REDIS
+  redis:
+    image: redis:7.4
+    container_name: outline_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ipbrick-v8
+    volumes:
+      - ./redis.conf:/redis.conf
+    command: ["redis-server", "/redis.conf"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+    restart: always
+
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                        VOLUMES                                                      ##
+##                                                                                                                     ##
+#########################################################################################################################
+volumes:
+  database-data:
+  keycloak_data:
+  grafana_storage: {}
+  gitlab-install: {}
+  gitlab-logs: {}
+  gitlab-data: {}
+  wekan-files:
+    driver: local
+  wekan-db:
+    driver: local
+  wekan-db-dump:
+    driver: local
+  portainer_data:
+    driver: local
+
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                       NETWORKS                                                      ##
+##                                                                                                                     ##
+#########################################################################################################################
+networks:
+  ipbrick-v8:
+    driver: bridge
