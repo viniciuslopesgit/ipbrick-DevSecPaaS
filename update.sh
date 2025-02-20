@@ -3,4 +3,4 @@
 #
 #
 #
-sshpass -p 'YPveiSEotlz5' scp -r * operator@62.28.182.152:/home1/_locals/operator/dockercompose
+sshpass -p '7b8GpzB1tPQy' scp -r * operator@172.18.203.225:/home1/_locals/operator/dockercompose

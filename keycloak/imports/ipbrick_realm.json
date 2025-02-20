@@ -1,6 +1,6 @@
 {
   "id": "outline",
-  "realm": "moreit_realm",
+  "realm": "demovl",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": false,
@@ -67,7 +67,7 @@
       },
       {
         "id": "702e8d4b-eb8c-405e-9545-81562f2bbcd6",
-        "name": "default-roles-moreit_realm",
+        "name": "default-roles-demovl",
         "description": "${role_default-roles}",
         "composite": true,
         "composites": {
@@ -408,7 +408,7 @@
   "groups": [],
   "defaultRole": {
     "id": "702e8d4b-eb8c-405e-9545-81562f2bbcd6",
-    "name": "default-roles-moreit_realm",
+    "name": "default-roles-demovl",
     "description": "${role_default-roles}",
     "composite": true,
     "clientRole": false,
@@ -483,13 +483,13 @@
       "clientId": "account",
       "name": "${client_account}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/moreit_realm/account/",
+      "baseUrl": "/realms/demovl/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/moreit_realm/account/*"
+        "/realms/demovl/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -530,13 +530,13 @@
       "clientId": "account-console",
       "name": "${client_account-console}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/moreit_realm/account/",
+      "baseUrl": "/realms/demovl/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/moreit_realm/account/*"
+        "/realms/demovl/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -682,7 +682,7 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "PkIjqEKDZIJNtBFfln21SH9cHKyTYl80",
       "redirectUris": [
-        "https://outline.moreit.ucoip.pt/auth/oidc.callback"
+        "https://outline.demovl.ucoip.pt/auth/oidc.callback"
       ],
       "webOrigins": [
         "*"
@@ -766,13 +766,13 @@
       "clientId": "security-admin-console",
       "name": "${client_security-admin-console}",
       "rootUrl": "${authAdminUrl}",
-      "baseUrl": "/admin/moreit_realm/console/",
+      "baseUrl": "/admin/demovl/console/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/admin/moreit_realm/console/*"
+        "/admin/demovl/console/*"
       ],
       "webOrigins": [
         "+"
@@ -1778,7 +1778,7 @@
             "false"
           ],
           "usersDn": [
-            "ou=users,dc=moreit,dc=ucoip,dc=pt"
+            "ou=users,dc=demovl,dc=ucoip,dc=pt"
           ],
           "cachePolicy": [
             "DEFAULT"
@@ -1799,10 +1799,10 @@
             "uid"
           ],
           "bindCredential": [
-            "15ac98720befec1d3f635426ccf15868"
+            "56411e7b7ee533db1ebaadd218a485e2"
           ],
           "bindDn": [
-            "cn=Reader,dc=moreit,dc=ucoip,dc=pt "
+            "cn=Reader,dc=demovl,dc=ucoip,dc=pt "
           ],
           "vendor": [
             "ad"
@@ -1811,7 +1811,7 @@
             "entryUUID"
           ],
           "connectionUrl": [
-            "ldap://62.28.182.152"
+            "ldap://172.18.203.225"
           ],
           "allowKerberosAuthentication": [
             "false"
