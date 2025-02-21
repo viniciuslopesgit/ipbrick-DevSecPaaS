@@ -1,0 +1,23 @@
+
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                   APACHE2-SERVER                                                    ##
+##                                                                                                                     ##
+#########################################################################################################################
+
+  <Proxy *>
+    Order deny,allow
+    Allow from all
+  </Proxy>
+  ProxyPreserveHost On
+  ProxyPass / http://localhost:15430/
+  ProxyPassReverse / http://localhost:15430/
+  <Location "/realtime/">
+    ProxyPass ws://localhost:15430/realtime/
+    ProxyPassReverse ws://localhost:15430/realtime/
+  </Location>
+  <Location "/collaboration/">
+    ProxyPass ws://localhost:15430/collaboration/
+    ProxyPassReverse ws://localhost:15430/collaboration/
+  </Location> 
+</VirtualHost>
