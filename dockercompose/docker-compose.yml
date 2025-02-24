@@ -34,7 +34,7 @@ services:
     hostname: 'gitlab.demovl.ucoip.pt'
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        hostname: 'gitlab.demovl.ucoip.pt'
+        external_url 'https://gitlab.demovl.ucoip.pt'
         nginx['listen_https'] = false
         nginx['redirect_http_to_https'] = false
         nginx['listen_port'] = 8181
@@ -69,6 +69,8 @@ services:
   grafana:
     image: grafana/grafana:11.1.4
     container_name: grafana_server
+    networks:
+      - ipbrick-v8
     hostname: 'grafana.demovl.ucoip.pt'
     ports:
       - 15210:3000
@@ -94,6 +96,8 @@ services:
 #########################################################################################################################
   keycloak:
     image: keycloak/keycloak:26.0
+    networks:
+      - ipbrick-v8
     container_name: keycloak_server
     environment:
       PROXY_ADDRESS_FORWARDING: true
@@ -133,8 +137,10 @@ services:
 ##                                                                                                                     ##
 #########################################################################################################################
   outline:
-    image: outlinewiki/outline:0.82.0
+    image: docker.getoutline.com/outlinewiki/outline:latest
     container_name: outline_server
+    networks:
+      - ipbrick-v8
     environment:
       NODE_ENV: production
       UTILS_SECRET: bba0b0f57a3e8c26d95b4a897905b5f6e5cb7f9299f6f3f6c0214e9fa8b957a6
@@ -144,7 +150,7 @@ services:
       DATABASE_CONNECTION_POOL_MAX:
       PGSSLMODE: disable
       REDIS_URL: redis://redis:6379
-      URL: https://outline.demovl.ucoip.pt/
+      URL: https://outline.demovl.ucoip.pt
       PORT: 3000
       # Keycloak OAuth
       OIDC_CLIENT_ID: outline
@@ -153,8 +159,8 @@ services:
       OIDC_TOKEN_URI: http://keycloak.demovl.ucoip.pt:15380/realms/demovl/protocol/openid-connect/token
       OIDC_USERINFO_URI: http://keycloak.demovl.ucoip.pt:15380/realms/demovl/protocol/openid-connect/userinfo
       OIDC_LOGOUT_URL: http://keycloak.demovl.ucoip.pt:15380/realms/demovl/protocol/openid-connect/logout
-      OIDC_REDIRECT_URI: https://outline.demovl.ucoip.ptallback
-      FORCE_HTTPS: true
+      OIDC_REDIRECT_URI: https://outline.demovl.ucoip.pt/auth/oidc.callback
+      FORCE_HTTPS: false
       TRUST_PROXY: true
       WEB_CONCURRENCY: 1
       DEBUG: http
@@ -169,7 +175,7 @@ services:
       FILE_STORAGE_UPLOAD_MAX_SIZE: 52428800 #50MB
       FILE_STORAGE_IMPORT_MAX_SIZE: 5120000
     ports:
-      - "15240:3000"
+      - "15430:3000"
     depends_on:
       - postgres
       - redis
@@ -233,6 +239,8 @@ services:
   postgres:
     image: postgres:14.13-bookworm
     container_name: postgres_server
+    networks:
+      - ipbrick-v8
     ports:
       - "5432:5432"
     volumes:
@@ -261,11 +269,12 @@ services:
   redis:
     image: redis:7.4
     container_name: redis_db
+    networks:
+      - ipbrick-v8
     ports:
       - "6379:6379"
     volumes:
       - outline-redis-data:/data
-    command: ["redis-server", "/redis.conf"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -295,3 +304,7 @@ volumes:
     driver: local
   outline-db-data:
   outline-redis-data:
+
+networks:
+  ipbrick-v8:
+    driver: bridge

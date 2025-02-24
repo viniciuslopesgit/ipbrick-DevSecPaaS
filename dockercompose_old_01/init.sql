@@ -34,7 +34,7 @@ services:
     hostname: '---GITLAB_SERVERNAME---'
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'https://---GITLAB_SERVERNAME---'
+        hostname: 'gitlab.demovl.ucoip.pt'
         nginx['listen_https'] = false
         nginx['redirect_http_to_https'] = false
         nginx['listen_port'] = 8181
@@ -42,14 +42,14 @@ services:
         # LDAP configuration
         gitlab_rails['ldap_enabled'] = true
         gitlab_rails['ldap_label'] = 'LDAP'
-        gitlab_rails['ldap_host'] = '---LDAP_HOST---'
+        gitlab_rails['ldap_host'] = '192.168.225.254'
         gitlab_rails['ldap_port'] = 389
         gitlab_rails['ldap_uid'] = 'uid'
         gitlab_rails['ldap_method'] = 'plain' # 'ssl' or 'plain'
-        gitlab_rails['ldap_bind_dn'] = '---LDAP_BIND_DN---'
-        gitlab_rails['ldap_password'] = '---LDAP_PASSWORD---'
+        gitlab_rails['ldap_bind_dn'] = 'cn=reader,dc=demovl,dc=ucoip,dc=pt'
+        gitlab_rails['ldap_password'] = '56411e7b7ee533db1ebaadd218a485e2'
         gitlab_rails['ldap_allow_username_or_email_login'] = true
-        gitlab_rails['ldap_base'] = '---LDAP_BASE_DN---'
+        gitlab_rails['ldap_base'] = 'dc=demovl,dc=ucoip,dc=pt'
     ports:
       - '15220:8181'
       - '15221:443'
@@ -69,7 +69,7 @@ services:
   grafana:
     image: grafana/grafana:11.1.4
     container_name: grafana_server
-    hostname: '---GRAFANA_SERVERNAME---'
+    hostname: 'grafana.demovl.ucoip.pt'
     ports:
       - 15210:3000
     environment:
@@ -144,7 +144,7 @@ services:
       DATABASE_CONNECTION_POOL_MAX:
       PGSSLMODE: disable
       REDIS_URL: redis://redis:6379
-      URL: https://---OUTLINE_SERVERNAME---/
+      URL: https://outline.demovl.ucoip.pt/
       PORT: 3000
       # Keycloak OAuth
       OIDC_CLIENT_ID: outline
@@ -185,15 +185,17 @@ services:
     image: wekanteam/wekan:v7.59
     container_name: wekan_server
     restart: always
+    networks:
+      - wekan-tier
     ports:
       - 15230:8080
     environment:
       - WRITABLE_PATH=/data
       - MONGO_URL=mongodb://wekandb:27017/wekan
       #- ROOT_URL=http://localhost
-      - ROOT_URL=https://---WEKAN_SERVERNAME---/
-      - MAIL_URL=smtp://---LDAP_HOST---:25/?ignoreTLS=true&tls={rejectUnauthorized:false}
-      - MAIL_FROM=Wekan Notifications <noreply.wekan@---DOMAIN--->
+      - ROOT_URL=https://wekan.demovl.ucoip.pt/
+      - MAIL_URL=smtp://192.168.225.254:25/?ignoreTLS=true&tls={rejectUnauthorized:false}
+      - MAIL_FROM=Wekan Notifications <noreply.wekan@domain.com>
       - WITH_API=true
       - RICHER_CARD_COMMENT_EDITOR=false
       - CARD_OPENED_WEBHOOK_ENABLED=false
@@ -202,14 +204,14 @@ services:
       - DEFAULT_AUTHENTICATION_METHOD=ldap
       - LDAP_ENABLE=true
       - LDAP_PORT=389
-      - LDAP_HOST=---LDAP_HOST---
+      - LDAP_HOST=192.168.225.254
       - LDAP_USER_AUTHENTICATION=true
       - LDAP_USER_AUTHENTICATION_FIELD=uid
-      - LDAP_BASEDN=---LDAP_BASE_DN_USERS---
+      - LDAP_BASEDN=ou=Users,dc=demovl,dc=ucoip,dc=pt
       - LDAP_RECONNECT=true
       - LDAP_AUTHENTIFICATION=true
-      - LDAP_AUTHENTIFICATION_USERDN=---LDAP_BIND_DN---
-      - LDAP_AUTHENTIFICATION_PASSWORD=---LDAP_PASSWORD---
+      - LDAP_AUTHENTIFICATION_USERDN=cn=reader,dc=demovl,dc=ucoip,dc=pt
+      - LDAP_AUTHENTIFICATION_PASSWORD=56411e7b7ee533db1ebaadd218a485e2
       - LDAP_LOG_ENABLED=true
       - LDAP_ENCRYPTION=false
       - LDAP_USER_SEARCH_FILTER=(&(objectClass=inetOrgPerson))
@@ -231,7 +233,7 @@ services:
 #########################################################################################################################
   # POSTGRES
   postgres:
-    image: postgres:14.13-bookworm
+    image: postgres:14.13-bookworm\\\\
     container_name: postgres_server
     ports:
       - "5432:5432"
@@ -250,6 +252,8 @@ services:
     container_name: wekan_db
     restart: always
     command: mongod --logpath /dev/null --oplogSize 128 --quiet
+    networks:
+      - wekan-tier
     expose:
       - 27017
     volumes:
@@ -295,3 +299,12 @@ volumes:
     driver: local
   outline-db-data:
   outline-redis-data:
+
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                       NETWORKS                                                      ##
+##                                                                                                                     ##
+#########################################################################################################################
+networks:
+  wekan-tier:
+    driver: bridge

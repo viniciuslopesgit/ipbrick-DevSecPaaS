@@ -10,14 +10,14 @@
     Allow from all
   </Proxy>
   ProxyPreserveHost On
-  ProxyPass / http://localhost:15240/
-  ProxyPassReverse / http://localhost:15240/
+  ProxyPass / http://localhost:15430/
+  ProxyPassReverse / http://localhost:15430/
   <Location "/realtime/">
-    ProxyPass ws://localhost:15240/realtime/
-    ProxyPassReverse ws://localhost:15240/realtime/
+    ProxyPass ws://localhost:15430/realtime/
+    ProxyPassReverse ws://localhost:15430/realtime/
   </Location>
   <Location "/collaboration/">
-    ProxyPass ws://localhost:15240/collaboration/
-    ProxyPassReverse ws://localhost:15240/collaboration/
+    ProxyPass ws://localhost:15430/collaboration/
+    ProxyPassReverse ws://localhost:15430/collaboration/
   </Location> 
 </VirtualHost>

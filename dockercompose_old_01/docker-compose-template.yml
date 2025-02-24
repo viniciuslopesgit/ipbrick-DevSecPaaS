@@ -185,6 +185,8 @@ services:
     image: wekanteam/wekan:v7.59
     container_name: wekan_server
     restart: always
+    networks:
+      - wekan-tier
     ports:
       - 15230:8080
     environment:
@@ -231,7 +233,7 @@ services:
 #########################################################################################################################
   # POSTGRES
   postgres:
-    image: postgres:14.13-bookworm
+    image: postgres:12.22
     container_name: postgres_server
     ports:
       - "5432:5432"
@@ -250,6 +252,8 @@ services:
     container_name: wekan_db
     restart: always
     command: mongod --logpath /dev/null --oplogSize 128 --quiet
+    networks:
+      - wekan-tier
     expose:
       - 27017
     volumes:
@@ -264,7 +268,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - outline-redis-data:/data
+      - ./redis.conf:/redis.conf
     command: ["redis-server", "/redis.conf"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -293,5 +297,12 @@ volumes:
     driver: local
   portainer_data:
     driver: local
-  outline-db-data:
-  outline-redis-data:
+
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                       NETWORKS                                                      ##
+##                                                                                                                     ##
+#########################################################################################################################
+networks:
+  wekan-tier:
+    driver: bridge
