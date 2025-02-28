@@ -1,0 +1,6 @@
+CREATE DATABASE grafana_db;
+GRANT ALL PRIVILEGES ON DATABASE grafana_db TO admin;
+
+CREATE DATABASE keycloak;
+GRANT ALL PRIVILEGES ON DATABASE keycloak TO admin;
+

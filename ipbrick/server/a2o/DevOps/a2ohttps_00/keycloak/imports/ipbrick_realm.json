@@ -1,0 +1,47 @@
+{
+  "realm": "a2o",
+  "enabled": true,
+  "id": "outline",
+  "clients": [
+    {
+      "clientId": "outline",
+      "enabled": true,
+      "secret": "PkIjqEKDZIJNtBFfln21SH9cHKyTYl80",
+      "redirectUris": [
+        "https://outline.a2o.ucoip.pt/auth/oidc.callback"
+      ],
+      "webOrigins": ["*"],
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "attributes": {
+        "post.logout.redirect.uris": "",
+        "oauth2.device.authorization.grant.enabled": false,
+        "oidc.ciba.grant.enabled": false
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "basic",
+        "email"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "user",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "123",
+          "temporary": false
+        }
+      ],
+      "firstName": "User",
+      "lastName": "One"
+    }
+  ]
+}
