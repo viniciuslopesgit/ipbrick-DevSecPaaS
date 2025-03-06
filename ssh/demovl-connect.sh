@@ -1,4 +1,4 @@
 #!/bin/bash
-#
-#
-sshpass -p "o14VCikrFvd2" ssh operator@172.18.203.225
+
+sshpass -p "QoJv96V8RjLd" ssh -t operator@172.18.203.225 
+
