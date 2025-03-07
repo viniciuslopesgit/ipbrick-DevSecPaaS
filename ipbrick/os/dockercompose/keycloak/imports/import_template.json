@@ -1,6 +1,6 @@
 {
   "id": "outline",
-  "realm": "demovl",
+  "realm": "---HOSTNAME---",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": false,
@@ -67,7 +67,7 @@
       },
       {
         "id": "f6796133-2eda-46c2-8897-08993f4a118b",
-        "name": "default-roles-demovl",
+        "name": "default-roles----HOSTNAME---",
         "description": "${role_default-roles}",
         "composite": true,
         "composites": {
@@ -408,7 +408,7 @@
   "groups": [],
   "defaultRole": {
     "id": "f6796133-2eda-46c2-8897-08993f4a118b",
-    "name": "default-roles-demovl",
+    "name": "default-roles----HOSTNAME---",
     "description": "${role_default-roles}",
     "composite": true,
     "clientRole": false,
@@ -483,13 +483,13 @@
       "clientId": "account",
       "name": "${client_account}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/demovl/account/",
+      "baseUrl": "/realms/---HOSTNAME---/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/demovl/account/*"
+        "/realms/---HOSTNAME---/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -530,13 +530,13 @@
       "clientId": "account-console",
       "name": "${client_account-console}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/demovl/account/",
+      "baseUrl": "/realms/---HOSTNAME---/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/demovl/account/*"
+        "/realms/---HOSTNAME---/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -677,7 +677,7 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "PkIjqEKDZIJNtBFfln21SH9cHKyTYl80",
       "redirectUris": [
-        "https://outline.demovl.ucoip.pt/auth/oidc.callback"
+        "https://---OUTLINE-URL---/auth/oidc.callback"
       ],
       "webOrigins": [
         "*"
@@ -758,13 +758,13 @@
       "clientId": "security-admin-console",
       "name": "${client_security-admin-console}",
       "rootUrl": "${authAdminUrl}",
-      "baseUrl": "/admin/demovl/console/",
+      "baseUrl": "/admin/---HOSTNAME---/console/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/admin/demovl/console/*"
+        "/admin/---HOSTNAME---/console/*"
       ],
       "webOrigins": [
         "+"
@@ -1773,7 +1773,7 @@
             "false"
           ],
           "usersDn": [
-            "ou=users,dc=demovl,dc=ucoip,dc=pt"
+            "ou=users,dc=---HOSTNAME---,dc=ucoip,dc=pt"
           ],
           "connectionPooling": [
             "false"
@@ -1791,7 +1791,7 @@
             "true"
           ],
           "bindDn": [
-            "cn=Reader,dc=demovl,dc=ucoip,dc=pt "
+            "cn=Reader,dc=---HOSTNAME---,dc=ucoip,dc=pt "
           ],
           "usernameLDAPAttribute": [
             "uid"

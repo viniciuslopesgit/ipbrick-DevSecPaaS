@@ -58,6 +58,58 @@ function export_devops_docker_compose_yml ()
     return 1;
 }
 
+function export_realm()
+{
+    global $_path;
+    global $_path_gerados;
+    global $dbapache;
+
+    function extractHostName($hostname)
+    {
+        $parts = explode('.', $hostname);
+        return count($parts) > 1 ? $parts [1] : $hostname;
+    }
+
+    error_log (date("y-m-d/H:i:s",time())." - Generating Realm Settings - starting...' \n", 3, "/opt/system/log/system.log");
+    sleep (2);
+#    $template = "\n## Generate at " . date("Y-M-d H:m") . "\n\n";
+    $template .= file_get_contents("/opt/system/include.d/include/devops/docker-compose/import_template.json");
+    
+    $outline_website = $dbapache->getApacheByIdapache (161);
+    $outline_url = $outline_website[0]->servername;
+    $keycloak_website = $dbapache->getApacheByIdapache (162);
+    $keycloak_url = $keycloak_website[0]->servername;
+
+    $keycloak_url = extractHostName($keycloak_url);
+
+    $template = preg_replace('/"realm": "---HOSTNAME---"/', '"realm": "' . $keycloak_url . '"', $template);
+    $template = preg_replace('/default-roles----HOSTNAME---/', "default-roles-$keycloak_url", $template);
+    $template = preg_replace('/"baseUrl": "\/realms\/---HOSTNAME---\/account\/"/', '"baseUrl": "/realms/' . $keycloak_url . '/account/"', $template);
+    // care
+    $template = preg_replace('"\/realms\/---HOSTNAME---\/account\/*"', '/realms/' . $keycloak_url . '/account/', $template);
+    $template = preg_replace('/"redirectUris":\s*\[\s*"https:\/\/---OUTLINE-URL---\/auth\/oidc\.callback"\s*\]/', 
+                         '"redirectUris": ["https://' . $outline_url . '/auth/oidc.callback"]', 
+                         $template);
+
+
+
+    $output_dir = "/opt/devops/docker-compose/keycloak/imports";
+    $output_file = $output_dir . "/ipbrick_realm.json";
+    if (!is_dir($output_dir))
+    {
+        IpbLogMessage("Error. Unable to find directory $output_dir\n");
+        exit (1);
+    }
+    if (file_put_contents($output_file, $template) === false)
+    {
+        IpbLogMessage("Error: Unable to write to $output_file\n");
+        exit (1);
+    }
+    else
+        IpbLogMessage("Successfully generated $output_file\n");
+    return (0);
+}
+
 //Ticket #53 - Criar export, config e register para para gitlab_runner
 function export_devops_docker_compose_gitlab_runner_yml ()
 {
