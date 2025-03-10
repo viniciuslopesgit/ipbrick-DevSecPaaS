@@ -58,6 +58,73 @@ function export_devops_docker_compose_yml ()
     return 1;
 }
 
+function export_realm()
+{
+    global $_path;
+    global $_path_gerados;
+    global $dbapache;
+    global $_dbhostldap;
+    global $dbinterface;
+
+    function extractHostName($hostname)
+    {
+        $parts = explode('.', $hostname);
+        return count($parts) > 1 ? $parts [1] : $hostname;
+    }
+
+    error_log (date("y-m-d/H:i:s",time())." - Generating Realm Settings - starting...' \n", 3, "/opt/system/log/system.log");
+    sleep (2);
+#    $template = "\n## Generate at " . date("Y-M-d H:m") . "\n\n";
+    $template .= file_get_contents("/opt/system/include.d/include/devops/docker-compose/import_template.json");
+    
+    // extrair bindCredential a partir /opt/system/scripts/systemtools.php -u all
+
+
+    $outline_website = $dbapache->getApacheByIdapache (161);
+    $outline_url = $outline_website[0]->servername;
+    $keycloak_website = $dbapache->getApacheByIdapache (162);
+    $keycloak_url = $keycloak_website[0]->servername;
+    $keycloak_name = extractHostName($keycloak_url);
+    
+    $passwords = getPasswords();
+    $ldap_basedn_users = $_dn_users."".$_dn_base;           // LDAP_BASEDN             ou=users,dc=expo,dc=com
+    $ldap_binddn = "cn=reader,".$_dn_base;                  // LDAP_BINDDN             cn=reader,dc=expo,dc=com
+    $ldap_bindpw = $passwords["ldap_reader_pw"];      //Precisa ser dinâmico
+    $interface0 = $dbinterface->getInterfaceByInterface(0);
+    $_dbhostldap = $interface0[0]->ip;
+
+    $template = preg_replace('/"realm": "---HOSTNAME---"/', '"realm": "' . $keycloak_name . '"', $template);
+    $template = preg_replace('/default-roles----HOSTNAME---/', "default-roles-$keycloak_name", $template);
+    $template = preg_replace('/"baseUrl": "\/realms\/---HOSTNAME---\/account\/"/', '"baseUrl": "/realms/' . $keycloak_name . '/account/"', $template);
+    $template = preg_replace('"\/realms\/---HOSTNAME---\/account\/*"', '/realms/' . $keycloak_name . '/account/', $template);
+    $template = preg_replace('"https://---OUTLINE-URL---/auth/oidc.callback"', 'https://' . $outline_url . '/auth/oidc.callback', $template);
+    $template = preg_replace('"\/admin\/---HOSTNAME---\/console\/"', '/admin/' . $keycloak_name . '/console/', $template);
+    //usersDn - Falta ajustar para ser um parãmetro dinâmico. ex: google.com ("ou=users, dc=google, dc=com")
+    $template = preg_replace('"ou=users,dc=---HOSTNAME---,dc=ucoip,dc=pt"', 'ou=users,dc=' . $keycloak_name . ',dc=ucoip,dc=pt', $template);
+    //bindDn
+    $template = preg_replace('"cn=Reader,dc=---HOSTNAME---,dc=ucoip,dc=pt"', 'cn=Reader,dc=' . $keycloak_name . ',dc=ucoip,dc=pt', $template);
+    //bindCredential
+    $template = preg_replace('"---BIND-CREDENTIAL---"', '' . $ldap_bindpw . '', $template);
+    //connectionUrl
+    $template = preg_replace('"---LDAP-URL---"', '' . $_dbhostldap . '', $template);
+    
+    $output_dir = "/opt/devops/docker-compose/keycloak/imports";
+    $output_file = $output_dir . "/ipbrick_realm.json";
+    if (!is_dir($output_dir))
+    {
+        IpbLogMessage("Error. Unable to find directory $output_dir\n");
+        exit (1);
+    }
+    if (file_put_contents($output_file, $template) === false)
+    {
+        IpbLogMessage("Error: Unable to write to $output_file\n");
+        exit (1);
+    }
+    else
+        IpbLogMessage("Successfully generated $output_file\n");
+    return (0);
+}
+
 //Ticket #53 - Criar export, config e register para para gitlab_runner
 function export_devops_docker_compose_gitlab_runner_yml ()
 {

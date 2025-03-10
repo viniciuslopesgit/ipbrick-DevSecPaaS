@@ -58,22 +58,21 @@ Array
         '''
         testbed-devsecpaas/Software/opt/devops/scripts/devopsconfig.php
         '''
-        
+
 Para poderes avançar e testar os pontos seguintes, recomendava:
 
 1 - copiares os teus desenvolvimentos para a maquina
 
 2 - entrar na BD systemconf e ativar a flag "DEVOPS_DOCKER_COMPOSE"
-root@ipbrick:~#
-root@ipbrick:~# dbconnect systemconf
-Password: QoJv96V8RjLd#mP4st
-psql (15.10 (Debian 15.10-0+deb12u1))
-Type "help" for help.
+  root@ipbrick:~# dbconnect systemconf
+    Password: QoJv96V8RjLd#mP4st
+    psql (15.10 (Debian 15.10-0+deb12u1))
+    Type "help" for help.
 
-systemconf=> UPDATE alteracao SET alterado='t' WHERE servico='DEVOPS_DOCKER_COMPOSE';
-UPDATE 1
-systemconf=>
-systemconf=>
+    systemconf=> UPDATE alteracao SET alterado='t' WHERE servico='DEVOPS_DOCKER_COMPOSE';
+    UPDATE 1
+    systemconf=>
+    systemconf=>
 
 3 - Apply Configurations
 

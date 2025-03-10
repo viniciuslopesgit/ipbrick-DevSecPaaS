@@ -1,7 +1,7 @@
 #########################################################################################################################
 ##                                                                                                                     ##
 ##                                                                                                                     ##
-##                                                  A2o - IPBRICK-DEVOPS                                               ##
+##                                          A2o + Steptutor v2 - IPBRICK-DEVOPS                                        ##
 ##                                                                                                                     ##
 ##                                                                                    IPBRICK by EXPANDINDUSTRIA 2025  ##
 #########################################################################################################################
@@ -73,6 +73,7 @@
     '''
     Acesse o Keycloak Admin Console:
     • Vá para https://keycloak.{$DOMAIN_NAME} > realm {realm_name} > "Clients" > "openedx"
+    • Remova o mapper atual e substitua por um fixo.
     • Na aba "Client Scopes" > Crie um novo mapper fixo:
         ◦ Clique em "Create" ou "Add Mapper"
         ◦ Name: audience
@@ -81,6 +82,8 @@
         ◦ Add to access token: Ative (ON)
         ◦ Add to token introspection: Ative (ON, opcional)
         ◦ Salve as alterações
+
+        ps: Isso força o aud a ser exatamente openedx, evitando valores dinâmicos indesejados.
     '''
 
 ** O ficheiro de configuração do tutor está localizado no seguinte diretório:
@@ -92,7 +95,7 @@
 ** É preciso atualizar os dominíos e a SECRET KEY nos ficheiros 'config.yml' & 'keycloak':
     '''Zm19jiV9AqeMCHDfvwRlPDEF9eEeCHxz'''
 
-** Será necessário criar um script para passar a chave pública do realm para dentro da variável do keycloak.yml:
+** Caso seja para se criar uma chave pública dinâmica, será necessário criar um script para passar a chave pública do realm para dentro da variável do keycloak.yml:
     '''SOCIAL_AUTH_KEYCLOAK_PUBLIC_KEY= "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoS4i5QZfeMLcyXxP2Yc/XtOpa+MwHpOkbQN7zk9LlAm1iG11xbBh60gqNZAXy25NbEhpQWhpG7AnxBT4VSX6zxaIGqzAO+PV8EsJPjvhi5V+m8sU90nTx8abXt+sB5qhw7zEZWjlpRb9H+ago98pPxqn4fkbdspK49QBlTFQ0cXIn6rhkznJqpzrrlDXt5Eclt3i7kyBqRu7APV58+dFB6mfJ6eLHkbdq+nAaGWLKW33FAq5ooVtpjAdKVo0uimjLcd13qe6ERXCr/LjYNfwgVMwirxf/5/15xtw7hpnXj5d+M5MdFLYG/EPBAEijMQBBBhoveVASuAxItTK/LJawwIDAQAB"'''
 
 
