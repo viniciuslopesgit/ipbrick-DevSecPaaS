@@ -79,7 +79,6 @@ function export_realm()
     
     // extrair bindCredential a partir /opt/system/scripts/systemtools.php -u all
 
-
     $outline_website = $dbapache->getApacheByIdapache (161);
     $outline_url = $outline_website[0]->servername;
     $keycloak_website = $dbapache->getApacheByIdapache (162);

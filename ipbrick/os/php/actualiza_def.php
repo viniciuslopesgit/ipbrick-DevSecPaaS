@@ -45,7 +45,6 @@ if ( $alterado_user_grupo[0]->alterado == 't' ) {
     //check if group devops has been modified
     $devops_groups = $dbgrupo_ldap->getGrupo_ldapByNome ("devops");
     //error_log(date("c")." - DEBUG:".__FUNCTION__."@".__FILE__.":".__LINE__." VAR»{$result}= ".print_r($devops_groups, "t")."\n",3,"/tmp/em.log");
-
     $devops_group = $devops_groups[0];
     //if ($devops_group->accao == 'U') {
         IpbLogMessage("Updating DEVOPS system group docker...\n");
@@ -65,7 +64,6 @@ if ( $alterado_user_grupo[0]->alterado == 't' ) {
         for($i=0; $i<$count_devops_group_members; $i++){
             $users_of_devops_group[] = $devops_group_members[$i]->login;
         }
-
         //get users to add to the group docker
         $users_to_add_to_docker_group_diff = array_diff($users_of_devops_group, $users_of_docker_system_group);
         $users_to_add_to_docker_group = array_values($users_to_add_to_docker_group_diff);
@@ -75,7 +73,6 @@ if ( $alterado_user_grupo[0]->alterado == 't' ) {
             $ipsocket->IpSocket_Write_Data ("gpasswd --add ".$users_to_add_to_docker_group[$j]." docker");
             IpbLogMessage("Updating DEVOPS - adding ".$users_to_add_to_docker_group[$j]." to docker group\n");
         }
-
         //get users to remove from the group docker
         $users_to_remove_from_docker_group_diff = array_diff($users_of_docker_system_group, $users_of_devops_group);
         $users_to_remove_from_docker_group = array_values($users_to_remove_from_docker_group_diff);
@@ -88,12 +85,7 @@ if ( $alterado_user_grupo[0]->alterado == 't' ) {
                 $ipsocket->IpSocket_Write_Data ("gpasswd --delete ".$users_to_remove_from_docker_group[$j]." docker");
                 IpbLogMessage("Updating DEVOPS - removing ".$users_to_remove_from_docker_group[$j]." from docker group\n");
             }
-
          }
-
-
     //}
-
-
 }
 ?>

@@ -26,7 +26,6 @@
 */
 $params['runAs'] = "";
 $params['root_password'] = "";
-
 if(count ($argv) > 1) {
     foreach ($argv as $arg) {
         $e=explode("=",$arg);
@@ -45,7 +44,6 @@ if ($params['runAs'] == "autoconfig") {
         exit (0);
     }
 }
-
 //check the authenticity of the script
 $included_files = get_included_files ();
 if ($_SERVER["SCRIPT_FILENAME"] != "/opt/system/scripts/autoconfig.php" || $included_files[0] != "/opt/system/scripts/autoconfig.php" || count ($included_files) != 1) {
@@ -54,10 +52,8 @@ if ($_SERVER["SCRIPT_FILENAME"] != "/opt/system/scripts/autoconfig.php" || $incl
 } else {    
     $_ipbrick_certificate_key = "2ea98f2a57f8429e814984f23a8bab59799dc223-188f434db2b4098b70325ce4d03b6a710d8f4541-9a8d6e1dbaab0eddbdba7a0db29240469501647d";
 }
-
 include_once ("/opt/system/site_xxx.php");
 include_once ("/opt/system/LIB/LibMisc.php");
-
 //There are many changes, so Include IPBrick code to simplify
 include_once ("/opt/system/include/class_init.php");
 
@@ -102,7 +98,6 @@ function changeGateway ($system_canonical, $interface, $gateway, &$error)
   curl_close ($ch);
 }
 
-
 function changeDomainName ($system_canonical,&$error)
 {
   include_once ("/root/execCommand.cfg");
@@ -119,7 +114,6 @@ function changeDomainName ($system_canonical,&$error)
   $content = curl_exec ($ch);
   curl_close ($ch);
 }
-
 
 function changeInterface ($system_canonical, $f_interface, $system_ip, $f_mask, $system_network, $system_bcast, $f_name, $f_encap, $f_type, $f_mode, &$error)
 {
@@ -174,7 +168,6 @@ function changePasswords ($root_password)
     return 1;
 }
 
-
 function remove_provisioning_page ()
 {
   exec ("rm /opt/system/site/portal.html"); //Exist only in first version of lunacloud-setup
@@ -208,9 +201,7 @@ function change_DNS_Machines ($system_canonical, $f_idzona,$f_iddns_in_a,$f_nome
   curl_setopt_array($ch, $optArray);
   // execute request and get response
   $system_ip = trim(curl_exec($ch));
-
   $f_ip = explode (".", $system_ip);
-
   $url="https://$system_canonical/index.php?Nome=admin&Password=123456&OK=OK";
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0); //Important for invalid certs
@@ -284,7 +275,6 @@ function create_Local_Name_Resolution ($system_canonical,$system_ip)
   "&f_host4=ucoip.$domain&f_ip1_4=$f_ip[0]&f_ip2_4=$f_ip[1]&f_ip3_4=$f_ip[2]&f_ip4_4=$f_ip[3]&f_idhost4=".
   "&f_host5=voip.$domain&f_ip1_5=$f_ip[0]&f_ip2_5=$f_ip[1]&f_ip3_5=$f_ip[2]&f_ip4_5=$f_ip[3]&f_idhost5=".
   "&f_host6=webrtc.$domain&f_ip1_6=$f_ip[0]&f_ip2_6=$f_ip[1]&f_ip3_6=$f_ip[2]&f_ip4_6=$f_ip[3]&f_idhost6=&alterar=Modify";
-
 
   $url2="https://$system_canonical/corpo.php?pagina=dns_local_names_modify_acc&reloadpag=1&total_dns_hosts_number=6&total_dns_hosts_number_add=0&deldnshost=&iddeldnshost=-1$postfields";
   curl_setopt($ch, CURLOPT_URL, $url2);
