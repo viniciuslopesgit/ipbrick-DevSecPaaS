@@ -1,0 +1,60 @@
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                    IPBRICK-DEVOPS                                                   ##
+##                                                                                                                     ##
+##                                                                                                                     ##
+##                                                                                    IPBRICK by EXPANDINDUSTRIA 2025  ##
+#########################################################################################################################
+
+services:
+#########################################################################################################################
+##                                                                                                                     ##
+##                                                     GITLAB RUUNER                                                   ##
+##                                                                                                                     ##
+#########################################################################################################################
+  dind:
+    image: docker:27.3.1-dind
+    container_name: dind
+    restart: always
+    privileged: true
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    command:
+      - --storage-driver=overlay2
+      
+  gitlab-runner:
+    restart: always
+    image: gitlab/gitlab-runner:v17.5.3
+    container_name: gitlab-runner
+    dns:
+      - ---DNS_SERVER---
+    depends_on:
+      - dind
+    environment:
+      - DOCKER_HOST=tcp://dind:2375
+    volumes:
+      - ./config:/etc/gitlab-runner:z
+
+  gitlab-register-runner:
+    restart: 'no'
+    image: gitlab/gitlab-runner:v17.5.3
+    container_name: gitlab-register-runner
+    dns:
+      - ---DNS_SERVER---
+    depends_on:
+      - dind
+    environment:
+      - CI_SERVER_URL=https://---GITLAB_SERVERNAME---
+      - REGISTRATION_TOKEN=---REGISTRATION_TOKEN---
+    command:
+      - register
+      - --non-interactive
+      - --locked=false
+      - --name=firstrunner
+      - --executor=docker
+      - --docker-image=docker:27.3.1-dind
+      - --docker-volumes=/var/run/docker.sock:/var/run/docker.sock
+    volumes:
+      - ./config:/etc/gitlab-runner:z
+
+  
