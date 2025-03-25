@@ -37,25 +37,14 @@ function postINFO($url, $post, $token)
 }
 
 $function = "addWebSite";
-$arguments_fields["protocol"] = 2;
-$arguments_fields["servername"] = "website.domain.com";
-$arguments_fields["serveralias"] = "";
-$arguments_fields["serveradmin"] = "administrator@domain.com";
-$arguments_fields["ftplogin"] = "admin";
-$arguments_fields["ftppass"] = "Aa123456!";
-$arguments_fields["documentroot"] = "websitedemovlucoippt";
-$arguments_fields["internet"] = 1;
-$arguments_fields["safe_mode"] = 0;
-$arguments_fields["open_basedir"] = "home1/_sites/websitedomaincom/tmp";
-// $arguments_fields["charset"] = "On";
-// $arguments_fields["canonicalname"] = "UseCanonicalName Off";
+$arguments_fields["protocol"] = 0;
 
 $arguments = json_encode($arguments_fields); //enviar os argumentos como json
 
 $post["function"] = $function;
 $post["arguments"] = $arguments;
-$token = "a0f428bd477e848886cdb9feec13146c"; // chave descrita acima
-$serverip = "172.18.203.216";
+$token = "98f87568e8c51028d5832ad188a6d214"; // chave descrita acima
+$serverip = "172.18.203.225";
 $url = "https://$serverip/api/server.php";
 $result = postINFO($url, $post, $token);
 echo "\n\nresult=";

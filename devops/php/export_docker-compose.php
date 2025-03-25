@@ -82,37 +82,35 @@ function export_realm()
     }
     error_log (date("y-m-d/H:i:s",time())." - Generating Realm Settings - starting...' \n", 3, "/opt/system/log/system.log");
     sleep (2);
-#   $template = "\n## Generate at " . date("Y-M-d H:m") . "\n\n";
+
     $template .= file_get_contents("/opt/system/include.d/include/devops/docker-compose/import_template.json");
-    
-    $outline_website = $dbapache->getApacheByIdapache (161);
+    $outline_website = $dbapache->getApacheByIdapache(161);
     $outline_url = $outline_website[0]->servername;
-    $keycloak_website = $dbapache->getApacheByIdapache (162);
+    $keycloak_website = $dbapache->getApacheByIdapache(162);
     $keycloak_url = $keycloak_website[0]->servername;
     $keycloak_name = extractHostName($keycloak_url);
     $interface0 = $dbinterface->getInterfaceByInterface(0);
     $_dbhostldap = $interface0[0]->ip;
-    
-    $passwords = getPasswords();
-    $ldap_basedn_users = $_dn_users."".$_dn_base;
-    $ldap_bindpw = $passwords["ldap_reader_pw"];
 
+    $passwords = getPasswords();
+    $ldap_basedn_users = "cn=Reader,".$_dn_base;
+    $ldap_bindpw = $passwords["ldap_reader_pw"];
     $template = preg_replace('/"realm": "---HOSTNAME---"/', '"realm": "' . $keycloak_name . '"', $template);
     $template = preg_replace('/default-roles----HOSTNAME---/', "default-roles-$keycloak_name", $template);
     $template = preg_replace('/"baseUrl": "\/realms\/---HOSTNAME---\/account\/"/', '"baseUrl": "/realms/' . $keycloak_name . '/account/"', $template);
     $template = preg_replace('"\/realms\/---HOSTNAME---\/account\/*"', '/realms/' . $keycloak_name . '/account/', $template);
     $template = preg_replace('"https://---OUTLINE-URL---/auth/oidc.callback"', 'https://' . $outline_url . '/auth/oidc.callback', $template);
     $template = preg_replace('"\/admin\/---HOSTNAME---\/console\/"', '/admin/' . $keycloak_name . '/console/', $template);
-    $template = str_replace ("---LDAP_BASE_DN---", $_dn_base, $template);
+    $template = str_replace ("---LDAP_BASE_DN---", "ou=users,".$_dn_base, $template);
     $template = str_replace ("---LDAP_BASE_DN_USERS---", $ldap_basedn_users, $template);
-    $template = preg_replace('"---BIND-CREDENTIAL---"', '' . $ldap_bindpw . '', $template);
-    $template = preg_replace('"---LDAP-URL---"', '' . $_dbhostldap . '', $template);
+    $template = preg_replace('"---BIND-CREDENTIAL---"', $ldap_bindpw, $template);
+    $template = preg_replace('"---LDAP-URL---"', $_dbhostldap, $template);
     file_put_contents($_path_gerados."ipbrick_realm.json", $template);
     return (0);
 }
 
 //Ticket #53 - Criar export, config e register para para gitlab_runner
-function export_devops_docker_compose_gitlab_runner_yml ()
+function export_devops_docker_compose_gitlab_runner_yml()
 {
     global $_path;
     global $_path_gerados;
@@ -125,7 +123,9 @@ function export_devops_docker_compose_gitlab_runner_yml ()
     global $dbapache;
     global $dbinterface;
     global $dbdnsdef;
+
     IpbLogMessage ("Generate new DEVOPS file docker-compose_gitlab-runner.yml \n");
+
     $template = "\n## Generated at ".date("Y-M-d H:m")."\n\n";
     $template .= file_get_contents ("/opt/system/include.d/include/devops/docker-compose/docker-compose_gitlab-runner.yml.template");
     $dnsdef = $dbdnsdef->getDnsDef();
@@ -138,7 +138,7 @@ function export_devops_docker_compose_gitlab_runner_yml ()
     return 1;
 }
 
-function export_devops_gitlab_runner_config_toml ()
+function export_devops_gitlab_runner_config_toml()
 {
     global $_path;
     global $_path_gerados;
@@ -151,7 +151,9 @@ function export_devops_gitlab_runner_config_toml ()
     global $dbapache;
     global $dbinterface;
     global $dbdnsdef;
+
     IpbLogMessage ("Generate new DEVOPS file gitlab-runner_config.toml \n");
+
     $template = "\n## Generated at ".date("Y-M-d H:m")."\n\n";
     $template .= file_get_contents ("/opt/system/include.d/include/devops/docker-compose/gitlab-runner_config.toml.template");
     $gitlab_website = $dbapache->getApacheByIdapache (159);

@@ -440,7 +440,7 @@ if ($params['runAs'] == "dockersconfigure") {
     $autoconfig_docker_compose = "/opt/devops/docker-compose/autoconfig_docker-compose.yml";
     if (file_exists($autoconfig_docker_compose)) {
         //echo "The file $autoconfig_docker_compose exists.";
-        exec ("docker compose -f /opt/devops/docker-compose/autoconfig_docker-compose.yml up -d >> /opt/devops/log/devops.log 2>> /opt/devops/log/devops.log");
+        exec ("docker compose -f /opt/devops/docker-compose/autoconfig_docker-compose.yml up -d && docker network connect bridge keycloak_server && docker network connect bridge outline_server >> /opt/devops/log/devops.log 2>> /opt/devops/log/devops.log");
     } else {
         echo "The file docker-compose.yml $autoconfig_docker_compose does not exist!";
         error_log (date("y-m-d/H:i:s",time())." - 'DEVOPS AUTO CONFIGURATION [dockersconfigure] - Error: The file docker-compose.yml $autoconfig_docker_compose does not exist!' \n", 3, "/opt/system/log/system.log");

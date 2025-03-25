@@ -43,6 +43,7 @@ function addRESTWebSite($getWebArgs)
     $arguments = json_decode($getWebArgs);
     if (json_last_error() !== JSON_ERROR_NONE)
     {
+        logDebug("Erro ao processar o JSON! #1");
         $ret = new stdClass();
         $ret->result = "-1";
         $ret->description = "Erro ao decodificar JSON: " . json_last_error_msg();
@@ -52,26 +53,32 @@ function addRESTWebSite($getWebArgs)
     $arguments_count = count((array)$arguments);
     if (!isset($arguments->servername) || !isset($arguments->serveralias) || !isset($arguments->serveradmin) || !isset($arguments->ftplogin) || !isset($arguments->ftppass) || !isset($arguments->documentroot) || !isset($arguments->internet) || !isset($arguments->safe_mode) || !isset($arguments->open_basedir))
     {
+
+        logDebug("Erro ao processar o JSON! #2");
         $ret->result = "-1";
         $ret->description = "Invalid parameters! Required fields (servername, serveralias...) are missing.";
         logDebug($ret->description);
         return json_encode($ret);
     }
+    $error          = [];
+    $addWebsite     = addWebsite($arguments, $error);
 
-
-    $error = [];
-    $addWebsite = addWebsite($arguments, $error);
-    $addReverseProxy = addReverseProxy($rev_arguments, $error);
-
-    logDebug((" -> Criando reverse-proxy..."));
-    logDebug("  [SUCCESS] Site adicionado com sucesso!");
-    
-    if (!empty($error))
+    $rev_proxy_port                         = "16666"; // Porta Local
+    #$arguments_reverse_proxy["idapache"]    = ""; // '1' É reservado para o ipbrick
+    $arguments_reverse_proxy["alias"]       = $getWebArgs->serveralias;
+    $arguments_reverse_proxy["host"]        = "http://localhost:$rev_proxy_port/";
+    $arguments_reverse_proxy["servername"]  = $arguments->servername;
+    $reverseproxyargs                       = json_encode($arguments_reverse_proxy);
+    if ($reverseproxyargs)
     {
-        $ret->result = "-1";
-        $ret->description = "Erro ao criar site: " . implode(", ", $error);
-        return json_encode($ret);
+        logDebug(   "-> Criando Reverse Proxy...");
+        $addReverse     = addReverseProxy($reverseproxyargs,$error);
     }
-    $response = $addWebsite ?: ["result" => "0", "description" => "Site criado com sucesso"];
+    else
+        logDebug("  -> Error ao tentar executar addReverseProxy...");
+    if (!$error)
+        $response = ["result" => $error, "description" => "Website criado com sucesso.\n        Reverse-Proxy criado com sucesso."];
+    else
+        $response = ["result" => $error, "description"=> "Erro ao criar site."];
     return json_encode($response);
 }

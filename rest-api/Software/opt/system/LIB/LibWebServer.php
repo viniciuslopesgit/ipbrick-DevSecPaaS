@@ -19,23 +19,22 @@ function addWebSite($websiteargs, &$error)
     global $dbservidor, $dbapache, $dbftp, $dbnamed_conf, $dbdns_in_a, $dbdns_cname;
     global $array_system_users;
 
-    logDebug("  -> Iniciando addWebSite ...");
-    logDebug("      -> Argumentos recebidos:");
-    if (isset($websiteargs->servername)) logDebug("          {");
-    if (isset($websiteargs->servername)) logDebug("          servername: $websiteargs->servername");
-    if (isset($websiteargs->servername)) logDebug("          serveralias: $websiteargs->serveralias");
-    if (isset($websiteargs->servername)) logDebug("          serveradmin: $websiteargs->serveradmin");
-    if (isset($websiteargs->servername)) logDebug("          ftplogin: $websiteargs->ftplogin");
-    if (isset($websiteargs->servername)) logDebug("          ftppass: $websiteargs->ftppass");
-    if (isset($websiteargs->servername)) logDebug("          documentroot: $websiteargs->documentroot");
-    if (isset($websiteargs->servername)) logDebug("          internet: $websiteargs->internet");
-    if (isset($websiteargs->servername)) logDebug("          safe_mode: $websiteargs->safe_mode");
-    if (isset($websiteargs->servername)) logDebug("          open_basedir: $websiteargs->open_basedir");
-    if (isset($websiteargs->servername)) logDebug("          }");
+    logDebug("  -> Iniciando addWebSite...");
+    // logDebug("      -> Argumentos recebidos:");
+    // if (isset($websiteargs->servername)) logDebug("          {");
+    // if (isset($websiteargs->servername)) logDebug("          servername: $websiteargs->servername");
+    // if (isset($websiteargs->servername)) logDebug("          serveralias: $websiteargs->serveralias");
+    // if (isset($websiteargs->servername)) logDebug("          serveradmin: $websiteargs->serveradmin");
+    // if (isset($websiteargs->servername)) logDebug("          ftplogin: $websiteargs->ftplogin");
+    // if (isset($websiteargs->servername)) logDebug("          ftppass: $websiteargs->ftppass");
+    // if (isset($websiteargs->servername)) logDebug("          documentroot: $websiteargs->documentroot");
+    // if (isset($websiteargs->servername)) logDebug("          internet: $websiteargs->internet");
+    // if (isset($websiteargs->servername)) logDebug("          safe_mode: $websiteargs->safe_mode");
+    // if (isset($websiteargs->servername)) logDebug("          open_basedir: $websiteargs->open_basedir");
+    // if (isset($websiteargs->servername)) logDebug("          }");
 
     $error = [];
     $servidor = $dbservidor->getServidor();
-
     // 1. TEST PROTOCOL [URL address Protocol]
     logDebug("      -> Verificando argumentos recebidos...");
     if (isset($websiteargs->protocol))
@@ -44,12 +43,14 @@ function addWebSite($websiteargs, &$error)
         if (is_numeric($protocol) && ($protocol === 1 || $protocol === 2 || $protocol === 3))
             logDebug("          1.[OK]    protocol");
         else
+        {
             logDebug("          1.[FAIL]    Error! 3045");
+            $error = "Error! Protocólo http/https inválido.";
+        }
     }
     else
     {
-        //Defaul value is 1 (HTTP)
-        logDebug("          1. Definido como HTTP");
+        logDebug("          1.[OK]    protocol");
         $protocol = 1;
     }
     
@@ -57,16 +58,26 @@ function addWebSite($websiteargs, &$error)
     if (isset($websiteargs->servername))
     {
         $servername = mb_strtolower(trim($websiteargs->servername));
-        if (@!$dbapache->testa_servername($servername))
-            logDebug("  1.[FAIL]    Error! 3046");
         $teste3 = $dbapache->getApacheByServername($servername);
         $teste8 = $dbapache->getApacheByServeralias($servername);
-        if (count((array) $teste3) || count((array) $teste8))
+        if (@!$dbapache->testa_servername($servername))
+        {
+            logDebug("  1.[FAIL]    Error! 3046"); 
+            return ($error = "Error! URL inválido!");
+        }
+        else if (count((array) $teste3) || count((array) $teste8))
+        {
             logDebug("          2.[FAIL]    Error! 3047");
+            return ($error = " Error! A URL já existe!\n");
+        }
+        else
+            logDebug("          2.[OK]    Servername");
     }
     else
+    {
         logDebug("          2.[FAIL]    Error! 3046");
-    logDebug("          2.[OK]    Servername");
+        return ($error = "Error! Servername não definido!");
+    }
 
     // 3. TEST SERVERALIAS [Alternative URL addresses:]
     if (isset($websiteargs->serveralias))
@@ -83,19 +94,23 @@ function addWebSite($websiteargs, &$error)
                 else
                     $serveralias .= " " . $test_serveralias;  // Espaco ao invés de vírgula
             }
-            else
-                logDebug("          3.[FAIL]    Error! 3048");
-
+            // else
+            //     logDebug("          3.[FAIL]    Error! 3048");
             $teste7 = $dbapache->getApacheByServeralias($test_serveralias);
             $teste9 = $dbapache->getApacheByServername($test_serveralias);
             if (count((array) $teste7) || count((array) $teste9))
-                logDebug("          3.[FAIL]    Error! 3047");
+            {
+                logDebug("          3.[WARNING]    3047");
+            }
         }
+        logDebug("          3.[OK]    serveralias");
     }
     else
+    {
         $serveralias = "";
-    logDebug("          3.[OK]    serveralias");
-
+        logDebug("          3.[OK]    serveralias");
+    }
+    
     // 4. TEST SERVERADMIN [Site administrator email]
     if (isset($websiteargs->serveradmin))
     {
@@ -122,36 +137,57 @@ function addWebSite($websiteargs, &$error)
             logDebug("  5.[FAIL]    Error! 3051");
         if (@!$dbftp->testa_ftplogin($ftplogin))
             logDebug("  4.[FAIL]    Error! 3051");
+        else
+            logDebug("          5.[OK]    ftplogin");
     }
     else
+    {
         logDebug("          5.[FAIL]    Error! 3052");
-    logDebug("          5.[OK]    ftplogin");
-
+        $error = "Error! FTP Login não definido.";
+    }
+    
     // 6. TEST FTPPASS [Password]
     if (isset($websiteargs->ftppass))
     {
         $ftppass = mb_strtolower(trim($websiteargs->ftppass));
         if (mb_strlen($ftppass) < 6)
-            logDebug("      6.[FAIL]    Error!  1157"); //The password does not meet security policies
+        {
+            logDebug("      6.[FAIL]    Error!  1157");
+            $error = "Error! FTP password inválida";
+        }
+        else
+            logDebug("          6.[OK]    ftppass");
     }
-    logDebug("          6.[OK]    ftppass");
+    else
+    {
+        logDebug("      6.[FAIL]    Error!  1157");
+        $error = "Error! FTP password não definida!";
+    }
 
     // 7. TEST DOCUMENTROOT [Site folder location]
     if (isset($websiteargs->documentroot))
     {
         $documentroot = mb_strtolower(trim($websiteargs->documentroot));
-        if (@!$dbapache->testa_documentroot($documentroot)) 
-            logDebug("          7.[FAIL]    Error! 3053");
         $documentroot = "/home1/_sites/" . $documentroot . "/";
         $teste4 = $dbapache->getApacheByDocRoot($documentroot);
-        if (count((array) $teste4))
-            logDebug("          7.[FAIL]    Error! 3054");
         if ($documentroot == '')
+        {
             logDebug("          7.[FAIL]    Error! 3053");
+            $error = "Error! Diretório Inválido.";
+        }
+        else if (count((array) $teste4))
+        {
+            logDebug("          7.[FAIL]    Error! 3054");
+            $error = "Error! 3054.";
+        }
+        else
+            logDebug("          7.[OK]    documentroot");
     }
     else
+    {
         logDebug("          7.[FAIL]    Error! 3053");
-    logDebug("          7.[OK]    documentroot");
+        $error = "Error! Diretório Inválido.";
+    }
 
     // 8. TEST INTERNET [Internet Availability]
     if (isset($websiteargs->Internet))
@@ -160,7 +196,10 @@ function addWebSite($websiteargs, &$error)
         if (is_numeric($internet) && ($internet === 0 || $internet === 1))
             logDebug("          8.[OK]    internet");
         else
+        {
             logDebug("          8.[FAIL]    Error! 1001");
+            $error = "Error! 1001";
+        }
     }
     else
         $internet = 1;
@@ -176,10 +215,16 @@ function addWebSite($websiteargs, &$error)
             logDebug("          9.[OK]    safe_mode");
         }
         else
+        {
             logDebug("          9.[FAIL]    Error! 1001");
+            $error = "Error! 1001";
+        }
     }
     else
+    {
         $phpsafemode = "php_admin_value safe_mode 0";
+        logDebug("          9.[OK]    safe_mode");
+    }
 
     // 10. TEST OPEN_BASEDIR [Access authorized only to the directories]
     if (isset($websiteargs->open_basedir))
@@ -187,26 +232,32 @@ function addWebSite($websiteargs, &$error)
         $open_basedir = array_filter(explode('/', $websiteargs->open_basedir));
         $error_open_basedir = 0;
         $count_open_basedir = count($open_basedir);
+        $final_directory = '';
+
         for ($i = 0; $i < $count_open_basedir; $i++)
         {
-            // Ajuste na expressão regular
-            if (preg_match('/^\/([\w-]+(?:\/[\w-]+)*)$/', '/' . $open_basedir[$i]))
-                logDebug("          10.[OK]    open_basedir parte válida: " . $open_basedir[$i]);
+            if (preg_match('/^([\w-]+(?:\/[\w-]+)*)$/', $open_basedir[$i]))
+            {
+                if ($final_directory == '')
+                    $final_directory = $open_basedir[$i];
+                else
+                    $final_directory .= '/' . $open_basedir[$i];
+                #logDebug("          10.[OK]    open_basedir parte válida: " . $open_basedir[$i]);
+            }
             else
             {
                 $error_open_basedir = 1;
                 logDebug("          10.[FAIL]    Erro! 3055");
+                $error = " Error! Diretório base inválido.";
             }
         }
         if ($error_open_basedir == 0)
-        {
-            $phpopenbasedir = implode(":", $open_basedir);
-            $phpopenbasedir = "php_admin_value open_basedir " . $phpopenbasedir;
-        }
+            $phpopenbasedir = "php_admin_value open_basedir " . $final_directory;
     }
     else
         $phpopenbasedir = "php_admin_value open_basedir none";
     logDebug("          10.[OK]    open_base");
+
 
 
     // 11. TEST CHARSET [Character encoding]
@@ -216,7 +267,10 @@ function addWebSite($websiteargs, &$error)
         if (is_string($charset))
             $DefaultCharset = "AddDefaultCharset " . $charset;
         else
+        {
             logDebug("          11.[FAIL]    Erro! 3056");
+            $error = "Error! Charset inválido.";
+        }
     }
     else
         $DefaultCharset = "AddDefaultCharset On";
@@ -233,12 +287,12 @@ function addWebSite($websiteargs, &$error)
     }
     else
         $UseCanonicalName = "UseCanonicalName Off";
+    logDebug("          12.[OK]    canonicalname");
 
     $websitetype = 2;
     $documentrootfull = $documentroot . "site/";
     $errorlog = $documentroot . "log/apache/error.log";
     $transferlog = $documentroot . "log/apache/access.log";
-
     if (count($error) == 0)
     {
         // Insere conta FTP
@@ -257,7 +311,6 @@ function addWebSite($websiteargs, &$error)
             $nome_servidor_real = $servidor[0]->nome;
             $zonas = $dbnamed_conf->getNamed_confByZonaInverseType($domain_servername, 'f', 'master');
             $n_zonas = count((array) $zonas);
-
             for ($j = 0; $j < $n_zonas; $j++)
             {
                 if ($zonas[$j]->zona == $domain_servername)
@@ -314,18 +367,48 @@ function addWebSite($websiteargs, &$error)
                 }
             }
         }
+        logDebug("          [SUCCESS] Site adicionado com sucesso!");
     }
+    else
+        return ($error);
 }
 
 function addReverseProxy($reverseproxyargs, &$error)
 {
-
     global $dbservidor, $dbapache, $dbapachealias;
     global $array_system_users;
 
-    $error = array();
-    $idapache = 0; // É preciso iniciar a variável para que a função crie um id automaticamente; ex: 200-201...
-    // 1. TESTE ALIAS [Proxy Alias]
+    logDebug("  -> Iniciando addReverseProxy...");
+    logDebug("      -> Verificando argumentos recebidos...");
+ 
+    // if (isset($reverseproxyargs->host)) logDebug("          {");
+    // if (isset($reverseproxyargs->host)) logDebug("          idapache: $reverseproxyargs->idapache");
+    // if (isset($reverseproxyargs->host)) logDebug("          alias: $reverseproxyargs->alias");
+    // if (isset($reverseproxyargs->host)) logDebug("          host: $reverseproxyargs->host");
+    // if (isset($reverseproxyargs->host)) logDebug("          uselocation: $reverseproxyargs->uselocation");
+    // if (isset($reverseproxyargs->host)) logDebug("          httpcomp: $reverseproxyargs->httpcomp");
+    // if (isset($reverseproxyargs->host)) logDebug("          selfsignedcomp: $reverseproxyargs->selfsignedcomp");
+    // if (isset($reverseproxyargs->host)) logDebug("          servername: $reverseproxyargs->servername");
+    // if (isset($reverseproxyargs->host)) logDebug("          }");
+    
+    $reverseproxyargs   = json_decode($reverseproxyargs);
+    $error              = [];   
+    $data               = $dbapache->getApacheByServername($reverseproxyargs->servername);
+    $apache_ID          = $data[0]->idapache;
+ 
+    // 1. TESTE IDAPACHE
+    if (isset($reverseproxyargs->idapache))
+    {
+        $idapache = $reverseproxyargs->idapache;
+        logDebug("          1.[OK]    idapache");
+    }
+    else
+    {
+        $idapache = $apache_ID;
+        logDebug("          1.[OK]    idapache");
+    }
+
+    // 2. TESTE ALIAS [Proxy Alias]
     if (isset($reverseproxyargs->alias))
     {
         $alias = mb_strtolower(trim($reverseproxyargs->alias));
@@ -333,47 +416,51 @@ function addReverseProxy($reverseproxyargs, &$error)
         {
             if (preg_match('/^(\/[a-zA-Z0-9\-\._~%!$&\'()*+,;=:@]+)*\/?$/', $alias) === 1)
             {
-                //value is OK
-                //Removes "/" at the beginning of the Alias
+                logDebug("          value is OK (vazio) alias");
                 if ($alias[0] === '/')
                     $alias = substr($alias, 1);
                 else
                     $error[] = 3057;
             }
             else
-                logDebug("value is OK (vazio)");
+                logDebug("          value is OK (vazio)   alias");
         }
     }
     else
         $alias = ""; //Default pode ser vazio
+    logDebug("          2.[OK]    alias");
 
-    // 2. TEST URL [URL]
+    // 3. TEST URL [URL]
     if (isset($reverseproxyargs->host))
     {
         $host = mb_strtolower(trim($reverseproxyargs->host));
         if (WebServerIsValidURL($host))
         {
-            logDebug("value is OK");
             if (($alias == '') && ($host[mb_strlen($host) - 1] != '/'))
                 $host = trim($host) . '/';
         } 
         else
             $error[] = 3046;
+        logDebug("          3.[OK]    URL");
     }
     else
+    {
         $error[] = 3046; //Default não pode ser vazio
+        logDebug("          3.[FAIL]    Erro! Host não definido");
+    }
 
-    // 3. TEST USE-LOCATION  [Enable Location directive]
+    // 4. TEST USE-LOCATION  [Enable Location directive]
     if (isset($reverseproxyargs->uselocation))
     {
         $uselocation = mb_strtolower(trim($reverseproxyargs->uselocation));
         if ((is_string($uselocation) && strlen($uselocation) === 1) && ($uselocation == 't' || $uselocation == 'f'))
-            logDebug("value is OK");               
+            logDebug("          value is OK     user-location");               
         else
             $error[] = 1001;
     }
     else
-        $uselocation = 'f'; // Default é FALSE
+        $uselocation = 'FALSE'; // Default é FALSE
+    logDebug("          4.[OK]    uselocation");
 
     // 4. TESTE HTTPCOMP [Enable compatibility with HTTP/1.0 protocol]
     if (isset($websiteargs->httpcomp))
@@ -391,17 +478,16 @@ function addReverseProxy($reverseproxyargs, &$error)
     if (isset($websiteargs->selfsignedcomp))
     {
         $selfsignedcomp = mb_strtolower(trim($reverseproxyargs->selfsignedcomp));
-        if (in_array($selfsignedcomp, ['t', 'f'], true))
-            logDebug("value is OK");
+        if($selfsignedcomp)
+            logDebug("value is OK       selfsignedcomp");
         else
-            $error[] = 1001;
+        $error[] = 1001;
     }
     else
         $selfsignedcomp = 'f'; //Defaul value is 'f'
-    if (count($error) == 0) {
-        $internet = 0;
-        $dbapachealias->insertApacheReverseProxy($idapache, $alias, $host, $internet, $httpcomp, $selfsignedcomp, $uselocation);
-    }
+    logDebug("          5.[OK]    selfsignedcomp");
+    $internet = 0;
+    $dbapachealias->insertApacheReverseProxy($idapache, $alias, $host, $internet, $httpcomp, $selfsignedcomp, $uselocation);
 }
 
 function WebServerIsValidURL($url)
